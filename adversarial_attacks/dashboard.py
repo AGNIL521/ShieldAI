@@ -110,4 +110,4 @@ def run_monitoring(n):
     return f'Potential adversarial samples at indices: {flags}'
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run(debug=True)
