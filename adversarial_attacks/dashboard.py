@@ -13,6 +13,28 @@ app.layout = html.Div([
     html.H1("Adversarial Attacks & Defenses Dashboard"),
     dcc.Tabs([
         dcc.Tab(label='Image Attack', children=[
+            html.Label('Dataset:'),
+            dcc.Dropdown(
+                id='img-dataset',
+                options=[
+                    {'label': 'Digits (sklearn)', 'value': 'digits'},
+                    {'label': 'MNIST', 'value': 'mnist'},
+                    {'label': 'Fashion-MNIST', 'value': 'fashion-mnist'},
+                    {'label': 'CIFAR-10', 'value': 'cifar10'},
+                    {'label': 'Upload Image Dataset', 'value': 'upload'}
+                ],
+                value='digits',
+                clearable=False
+            ),
+            dcc.Upload(
+                id='img-upload',
+                children=html.Div(['Drag and Drop or ', html.A('Select Files'), html.Br(),
+                                   'Supported: .csv, .tsv, .npy, .npz, .txt, .xls, .xlsx, .json, .zip']),
+                style={'width': '100%', 'height': '60px', 'lineHeight': '60px',
+                       'borderWidth': '1px', 'borderStyle': 'dashed', 'borderRadius': '5px',
+                       'textAlign': 'center', 'margin': '10px 0'}
+            ),
+            html.Div(id='img-upload-preview', style={'marginBottom': '10px', 'fontSize': 'small', 'fontFamily': 'monospace', 'whiteSpace': 'pre-wrap'}),
             html.Label('Attack Strength (epsilon):'),
             dcc.Slider(id='img-epsilon', min=0, max=1, step=0.05, value=0.3, marks={0:'0', 0.5:'0.5', 1:'1'}),
             dcc.Checklist(id='img-random', options=[{'label': 'Randomize Sample', 'value': 'random'}], value=['random']),
@@ -21,6 +43,27 @@ app.layout = html.Div([
             dcc.Graph(id='img-attack-plot'),
         ]),
         dcc.Tab(label='NLP Attack', children=[
+            html.Label('Dataset:'),
+            dcc.Dropdown(
+                id='nlp-dataset',
+                options=[
+                    {'label': 'Toy Spam/Ham', 'value': 'toy'},
+                    {'label': 'SMS Spam Collection', 'value': 'sms'},
+                    {'label': '20 Newsgroups', 'value': '20news'},
+                    {'label': 'Upload Text Dataset', 'value': 'upload'}
+                ],
+                value='toy',
+                clearable=False
+            ),
+            dcc.Upload(
+                id='nlp-upload',
+                children=html.Div(['Drag and Drop or ', html.A('Select Files'), html.Br(),
+                                   'Supported: .csv, .tsv, .txt, .xls, .xlsx, .json']),
+                style={'width': '100%', 'height': '60px', 'lineHeight': '60px',
+                       'borderWidth': '1px', 'borderStyle': 'dashed', 'borderRadius': '5px',
+                       'textAlign': 'center', 'margin': '10px 0'}
+            ),
+            html.Div(id='nlp-upload-preview', style={'marginBottom': '10px', 'fontSize': 'small', 'fontFamily': 'monospace', 'whiteSpace': 'pre-wrap'}),
             html.Label('Perturbation Probability:'),
             dcc.Slider(id='nlp-perturb-prob', min=0, max=1, step=0.05, value=0.3, marks={0:'0', 0.5:'0.5', 1:'1'}),
             dcc.Checklist(id='nlp-random', options=[{'label': 'Randomize Test Order', 'value': 'random'}], value=['random']),
@@ -29,6 +72,27 @@ app.layout = html.Div([
             dcc.Graph(id='nlp-attack-bar'),
         ]),
         dcc.Tab(label='IDS Attack', children=[
+            html.Label('Dataset:'),
+            dcc.Dropdown(
+                id='ids-dataset',
+                options=[
+                    {'label': 'Toy', 'value': 'toy'},
+                    {'label': 'NSL-KDD', 'value': 'nslkdd'},
+                    {'label': 'UNSW-NB15', 'value': 'unsw'},
+                    {'label': 'Upload IDS Dataset', 'value': 'upload'}
+                ],
+                value='toy',
+                clearable=False
+            ),
+            dcc.Upload(
+                id='ids-upload',
+                children=html.Div(['Drag and Drop or ', html.A('Select Files'), html.Br(),
+                                   'Supported: .csv, .tsv, .txt, .xls, .xlsx, .json']),
+                style={'width': '100%', 'height': '60px', 'lineHeight': '60px',
+                       'borderWidth': '1px', 'borderStyle': 'dashed', 'borderRadius': '5px',
+                       'textAlign': 'center', 'margin': '10px 0'}
+            ),
+            html.Div(id='ids-upload-preview', style={'marginBottom': '10px', 'fontSize': 'small', 'fontFamily': 'monospace', 'whiteSpace': 'pre-wrap'}),
             html.Label('Attack Strength (epsilon):'),
             dcc.Slider(id='ids-epsilon', min=0, max=5, step=0.1, value=1.0, marks={0:'0', 2.5:'2.5', 5:'5'}),
             html.Button('Run IDS Attack', id='run-ids-attack', n_clicks=0),
@@ -55,13 +119,16 @@ app.layout = html.Div([
     Output('img-attack-plot', 'figure'),
     Input('run-img-attack', 'n_clicks'),
     State('img-epsilon', 'value'),
-    State('img-random', 'value')
+    State('img-random', 'value'),
+    State('img-dataset', 'value'),
+    State('img-upload', 'contents')
 )
-def run_img_attack(n, epsilon, randomize):
+def run_img_attack(n, epsilon, randomize, dataset, upload_contents):
     if n == 0:
         return '', go.Figure()
     idx = None if 'random' in (randomize or []) else 0
-    fooled, orig, adv, diff = attack_demo.run_attack_demo(plot=False, return_images=True, epsilon=epsilon, idx=idx)
+    # Pass dataset and upload_contents to backend (to be implemented in attack_demo.py)
+    fooled, orig, adv, diff = attack_demo.run_attack_demo(plot=False, return_images=True, epsilon=epsilon, idx=idx, dataset=dataset, upload_contents=upload_contents)
     fig = go.Figure()
     fig.add_trace(go.Heatmap(z=orig, colorscale='gray', showscale=False, name='Original'))
     fig.add_trace(go.Heatmap(z=adv, colorscale='gray', showscale=False, name='Adversarial', visible=False))
@@ -85,16 +152,19 @@ def run_img_attack(n, epsilon, randomize):
     Output('nlp-attack-bar', 'figure'),
     Input('run-nlp-attack', 'n_clicks'),
     State('nlp-perturb-prob', 'value'),
-    State('nlp-random', 'value')
+    State('nlp-random', 'value'),
+    State('nlp-dataset', 'value'),
+    State('nlp-upload', 'contents')
 )
-def run_nlp_attack(n, perturb_prob, randomize):
+def run_nlp_attack(n, perturb_prob, randomize, dataset, upload_contents):
     if n == 0:
         return '', go.Figure()
     # If randomize, shuffle test samples by seeding np.random
     import numpy as np
     if 'random' in (randomize or []):
         np.random.seed(None)
-    clean_acc, adv_acc, results = nlp_attack_demo.run_nlp_demo(perturb_prob=perturb_prob)
+    # Pass dataset and upload_contents to backend (to be implemented in nlp_attack_demo.py)
+    clean_acc, adv_acc, results = nlp_attack_demo.run_nlp_demo(perturb_prob=perturb_prob, dataset=dataset, upload_contents=upload_contents)
     fig = go.Figure(data=[
         go.Bar(name='Clean', x=['Accuracy'], y=[clean_acc]),
         go.Bar(name='Adversarial', x=['Accuracy'], y=[adv_acc])
@@ -106,12 +176,14 @@ def run_nlp_attack(n, perturb_prob, randomize):
     Output('ids-attack-result', 'children'),
     Output('ids-attack-bar', 'figure'),
     Input('run-ids-attack', 'n_clicks'),
-    State('ids-epsilon', 'value')
+    State('ids-epsilon', 'value'),
+    State('ids-dataset', 'value'),
+    State('ids-upload', 'contents')
 )
-def run_ids_attack(n, epsilon):
+def run_ids_attack(n, epsilon, dataset, upload_contents):
     if n == 0:
         return '', go.Figure()
-    clean_acc, adv_acc = ids_attack_demo.run_ids_demo(epsilon=epsilon)
+    clean_acc, adv_acc = ids_attack_demo.run_ids_demo(epsilon=epsilon, dataset=dataset, upload_contents=upload_contents)
     fig = go.Figure(data=[
         go.Bar(name='Clean', x=['Accuracy'], y=[clean_acc]),
         go.Bar(name='Adversarial', x=['Accuracy'], y=[adv_acc])

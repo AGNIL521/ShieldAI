@@ -18,13 +18,81 @@ def add_typos(text, perturb_prob):
     return ''.join(chars)
 
 
-def run_nlp_demo(perturb_prob=0.3):
-    # Sample dataset
-    texts = [
-        'free money now', 'win big prize', 'cheap loans', 'urgent offer',
-        'hello friend', 'meeting at noon', 'project deadline', 'see you soon'
-    ]
-    labels = [1, 1, 1, 1, 0, 0, 0, 0]  # 1=spam, 0=ham
+def run_nlp_demo(perturb_prob=0.3, dataset='toy', upload_contents=None):
+    """
+    Run NLP adversarial attack demo with selectable dataset.
+    Args:
+        perturb_prob (float): Probability of perturbing each eligible char.
+        dataset (str): Which dataset to use ('toy', 'sms', '20news', 'upload').
+        upload_contents: base64-encoded uploaded file contents (if any).
+    Returns: clean_acc, adv_acc, results
+    """
+    import numpy as np
+    import base64
+    import io
+    import pandas as pd
+    from sklearn.datasets import fetch_20newsgroups
+    # Dataset selection logic
+    if dataset == 'toy':
+        texts = [
+            'free money now', 'win big prize', 'cheap loans', 'urgent offer',
+            'hello friend', 'meeting at noon', 'project deadline', 'see you soon'
+        ]
+        labels = [1, 1, 1, 1, 0, 0, 0, 0]
+    elif dataset == 'sms':
+        # Expect upload_contents to be SMS Spam Collection file
+        if upload_contents:
+            content_type, content_string = upload_contents.split(',')
+            decoded = base64.b64decode(content_string)
+            df = pd.read_csv(io.StringIO(decoded.decode()), sep='\t', header=None, names=['label', 'text'])
+            texts = df['text'].tolist()
+            labels = [1 if l=='spam' else 0 for l in df['label']]
+        else:
+            texts = [
+                'free money now', 'win big prize', 'cheap loans', 'urgent offer',
+                'hello friend', 'meeting at noon', 'project deadline', 'see you soon'
+            ]
+            labels = [1, 1, 1, 1, 0, 0, 0, 0]
+    elif dataset == '20news':
+        newsgroups = fetch_20newsgroups(subset='train', remove=('headers','footers','quotes'))
+        texts = newsgroups.data[:100]
+        labels = newsgroups.target[:100]
+    elif dataset == 'upload' and upload_contents:
+        content_type, content_string = upload_contents.split(',')
+        decoded = base64.b64decode(content_string)
+        # Try to auto-detect file type
+        try:
+            if 'csv' in content_type or 'text/csv' in content_type:
+                df = pd.read_csv(io.StringIO(decoded.decode()))
+            elif 'tsv' in content_type or 'text/tab-separated-values' in content_type:
+                df = pd.read_csv(io.StringIO(decoded.decode()), sep='\t')
+            elif 'txt' in content_type or '.txt' in content_type:
+                # Try tab, then comma, then whitespace
+                try:
+                    df = pd.read_csv(io.StringIO(decoded.decode()), sep='\t')
+                except Exception:
+                    try:
+                        df = pd.read_csv(io.StringIO(decoded.decode()), sep=',')
+                    except Exception:
+                        df = pd.read_csv(io.StringIO(decoded.decode()), delim_whitespace=True)
+            elif 'excel' in content_type or 'xls' in content_type or 'xlsx' in content_type:
+                df = pd.read_excel(io.BytesIO(decoded))
+            elif 'json' in content_type:
+                df = pd.read_json(io.StringIO(decoded.decode()))
+            else:
+                raise ValueError('Unsupported file type for text dataset upload.')
+            # Assume first column is label, second is text
+            texts = df.iloc[:,1].astype(str).tolist()
+            labels = df.iloc[:,0].tolist()
+        except Exception as e:
+            raise RuntimeError(f'Failed to parse uploaded file: {e}')
+    else:
+        texts = [
+            'free money now', 'win big prize', 'cheap loans', 'urgent offer',
+            'hello friend', 'meeting at noon', 'project deadline', 'see you soon'
+        ]
+        labels = [1, 1, 1, 1, 0, 0, 0, 0]
+
 
     X_train, X_test, y_train, y_test = train_test_split(texts, labels, test_size=0.5, random_state=42)
 

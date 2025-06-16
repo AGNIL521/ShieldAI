@@ -5,8 +5,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 import random
+import base64
+import io
+from tensorflow.keras.datasets import fashion_mnist, cifar10
 
-def run_attack_demo(plot=True, return_images=False, epsilon=0.3, idx=None):
+def run_attack_demo(plot=True, return_images=False, epsilon=0.3, idx=None, dataset='digits', upload_contents=None):
     """
     Run an adversarial attack on a random or specified test image.
     Args:
@@ -14,13 +17,79 @@ def run_attack_demo(plot=True, return_images=False, epsilon=0.3, idx=None):
         return_images (bool): Return images for dashboard.
         epsilon (float): Attack strength.
         idx (int or None): Index of test sample to attack. If None, choose randomly.
+        dataset (str): Which dataset to use ('digits', 'mnist', 'fashion-mnist', 'cifar10', 'upload').
+        upload_contents: base64-encoded uploaded file contents (if any).
     Returns:
         fooled (bool), orig_img, adv_img, diff_img (if return_images)
     """
 
-    # Load dataset (simple image classification)
-    data = load_digits()
-    X, y = data.data, data.target
+    # Dataset selection logic
+    if dataset == 'digits':
+        data = load_digits()
+        X, y = data.data, data.target
+    elif dataset == 'mnist':
+        mnist = fetch_openml('mnist_784', version=1, as_frame=False)
+        X, y = mnist['data'], mnist['target'].astype(int)
+    elif dataset == 'fashion-mnist':
+        (X, y), _ = fashion_mnist.load_data()
+        X = X.reshape((X.shape[0], -1))
+    elif dataset == 'cifar10':
+        (X, y), _ = cifar10.load_data()
+        X = X.reshape((X.shape[0], -1))
+        y = y.flatten()
+    elif dataset == 'upload' and upload_contents:
+        content_type, content_string = upload_contents.split(',')
+        decoded = base64.b64decode(content_string)
+        # Try to auto-detect file type
+        try:
+            if 'csv' in content_type or 'text/csv' in content_type:
+                import pandas as pd
+                df = pd.read_csv(io.StringIO(decoded.decode()))
+                X = df.iloc[:, :-1].values
+                y = df.iloc[:, -1].values
+            elif 'tsv' in content_type or 'text/tab-separated-values' in content_type:
+                import pandas as pd
+                df = pd.read_csv(io.StringIO(decoded.decode()), sep='\t')
+                X = df.iloc[:, :-1].values
+                y = df.iloc[:, -1].values
+            elif 'excel' in content_type or 'xls' in content_type or 'xlsx' in content_type:
+                import pandas as pd
+                df = pd.read_excel(io.BytesIO(decoded))
+                X = df.iloc[:, :-1].values
+                y = df.iloc[:, -1].values
+            elif 'json' in content_type:
+                import pandas as pd
+                df = pd.read_json(io.StringIO(decoded.decode()))
+                X = df.iloc[:, :-1].values
+                y = df.iloc[:, -1].values
+            elif 'zip' in content_type or '.zip' in content_type:
+                import zipfile
+                with zipfile.ZipFile(io.BytesIO(decoded)) as zf:
+                    filelist = zf.namelist()
+                    raise ValueError(f'ZIP archive preview: {filelist[:5]} ... (image ZIP support not yet implemented)')
+            elif 'npy' in content_type or '.npy' in content_type:
+                X = np.load(io.BytesIO(decoded))
+                y = np.zeros(X.shape[0])
+            elif 'npz' in content_type or '.npz' in content_type:
+                npzfile = np.load(io.BytesIO(decoded))
+                X = npzfile['X'] if 'X' in npzfile else npzfile[list(npzfile.keys())[0]]
+                y = npzfile['y'] if 'y' in npzfile else np.zeros(X.shape[0])
+            elif 'txt' in content_type or '.txt' in content_type:
+                arr = np.loadtxt(io.StringIO(decoded.decode()))
+                if arr.ndim == 1:
+                    X = arr.reshape(-1, 1)
+                    y = np.zeros(X.shape[0])
+                else:
+                    X = arr[:, :-1]
+                    y = arr[:, -1]
+            else:
+                raise ValueError('Unsupported file type for image dataset upload.')
+        except Exception as e:
+            raise RuntimeError(f'Failed to parse uploaded file: {e}')
+    else:
+        data = load_digits()
+        X, y = data.data, data.target
+
     X = X / 16.0  # Normalize
 
     # Binary classification for simplicity: digit 3 vs not-3
