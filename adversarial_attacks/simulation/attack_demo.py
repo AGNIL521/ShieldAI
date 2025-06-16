@@ -53,7 +53,7 @@ def run_attack_demo(plot=False):
         plt.axis('off')
         plt.show()
 
-    return y_adv_pred == 0  # True if fooled
+    return bool(y_adv_pred == 0)  # True if fooled, always as Python bool
 
 if __name__ == "__main__":
     fooled = run_attack_demo(plot=True)
