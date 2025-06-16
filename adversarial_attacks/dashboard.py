@@ -15,6 +15,7 @@ app.layout = html.Div([
         dcc.Tab(label='Image Attack', children=[
             html.Label('Attack Strength (epsilon):'),
             dcc.Slider(id='img-epsilon', min=0, max=1, step=0.05, value=0.3, marks={0:'0', 0.5:'0.5', 1:'1'}),
+            dcc.Checklist(id='img-random', options=[{'label': 'Randomize Sample', 'value': 'random'}], value=['random']),
             html.Button('Run Image Attack', id='run-img-attack', n_clicks=0),
             html.Div(id='img-attack-result'),
             dcc.Graph(id='img-attack-plot'),
@@ -22,6 +23,7 @@ app.layout = html.Div([
         dcc.Tab(label='NLP Attack', children=[
             html.Label('Perturbation Probability:'),
             dcc.Slider(id='nlp-perturb-prob', min=0, max=1, step=0.05, value=0.3, marks={0:'0', 0.5:'0.5', 1:'1'}),
+            dcc.Checklist(id='nlp-random', options=[{'label': 'Randomize Test Order', 'value': 'random'}], value=['random']),
             html.Button('Run NLP Attack', id='run-nlp-attack', n_clicks=0),
             html.Div(id='nlp-attack-result'),
             dcc.Graph(id='nlp-attack-bar'),
@@ -52,12 +54,14 @@ app.layout = html.Div([
     Output('img-attack-result', 'children'),
     Output('img-attack-plot', 'figure'),
     Input('run-img-attack', 'n_clicks'),
-    State('img-epsilon', 'value')
+    State('img-epsilon', 'value'),
+    State('img-random', 'value')
 )
-def run_img_attack(n, epsilon):
+def run_img_attack(n, epsilon, randomize):
     if n == 0:
         return '', go.Figure()
-    fooled, orig, adv, diff = attack_demo.run_attack_demo(plot=False, return_images=True, epsilon=epsilon)
+    idx = None if 'random' in (randomize or []) else 0
+    fooled, orig, adv, diff = attack_demo.run_attack_demo(plot=False, return_images=True, epsilon=epsilon, idx=idx)
     fig = go.Figure()
     fig.add_trace(go.Heatmap(z=orig, colorscale='gray', showscale=False, name='Original'))
     fig.add_trace(go.Heatmap(z=adv, colorscale='gray', showscale=False, name='Adversarial', visible=False))
@@ -80,11 +84,16 @@ def run_img_attack(n, epsilon):
     Output('nlp-attack-result', 'children'),
     Output('nlp-attack-bar', 'figure'),
     Input('run-nlp-attack', 'n_clicks'),
-    State('nlp-perturb-prob', 'value')
+    State('nlp-perturb-prob', 'value'),
+    State('nlp-random', 'value')
 )
-def run_nlp_attack(n, perturb_prob):
+def run_nlp_attack(n, perturb_prob, randomize):
     if n == 0:
         return '', go.Figure()
+    # If randomize, shuffle test samples by seeding np.random
+    import numpy as np
+    if 'random' in (randomize or []):
+        np.random.seed(None)
     clean_acc, adv_acc, results = nlp_attack_demo.run_nlp_demo(perturb_prob=perturb_prob)
     fig = go.Figure(data=[
         go.Bar(name='Clean', x=['Accuracy'], y=[clean_acc]),

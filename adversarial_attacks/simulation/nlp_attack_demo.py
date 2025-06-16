@@ -6,11 +6,17 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 def add_typos(text, perturb_prob):
-    # Simple adversarial: replace 'a' with '@', 'e' with '3', etc.
-    if np.random.rand() < perturb_prob:
-        return text.replace('a', '@').replace('e', '3').replace('o', '0')
-    else:
-        return text
+    """
+    Randomly perturb eligible characters in a string with probability perturb_prob.
+    Replaces 'a' with '@', 'e' with '3', 'o' with '0'.
+    """
+    import random
+    chars = list(text)
+    for i, c in enumerate(chars):
+        if c in 'aeo' and random.random() < perturb_prob:
+            chars[i] = {'a': '@', 'e': '3', 'o': '0'}[c]
+    return ''.join(chars)
+
 
 def run_nlp_demo(perturb_prob=0.3):
     # Sample dataset

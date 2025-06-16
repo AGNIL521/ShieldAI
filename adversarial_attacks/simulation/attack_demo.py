@@ -4,8 +4,20 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
+import random
 
-def run_attack_demo(plot=False, return_images=False, epsilon=0.3):
+def run_attack_demo(plot=True, return_images=False, epsilon=0.3, idx=None):
+    """
+    Run an adversarial attack on a random or specified test image.
+    Args:
+        plot (bool): Show plots.
+        return_images (bool): Return images for dashboard.
+        epsilon (float): Attack strength.
+        idx (int or None): Index of test sample to attack. If None, choose randomly.
+    Returns:
+        fooled (bool), orig_img, adv_img, diff_img (if return_images)
+    """
+
     # Load dataset (simple image classification)
     data = load_digits()
     X, y = data.data, data.target
