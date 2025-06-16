@@ -12,7 +12,7 @@ app.title = 'Adversarial Attacks Dashboard'
 app.layout = html.Div([
     html.H1("Adversarial Attacks & Defenses Dashboard"),
     dcc.Tabs([
-        dcc.Tab(label='Image Attack', children=[
+    dcc.Tab(label='Image Attack', children=[
             html.Label('Dataset:'),
             dcc.Dropdown(
                 id='img-dataset',
@@ -29,7 +29,7 @@ app.layout = html.Div([
             dcc.Upload(
                 id='img-upload',
                 children=html.Div(['Drag and Drop or ', html.A('Select Files'), html.Br(),
-                                   'Supported: .csv, .tsv, .npy, .npz, .txt, .xls, .xlsx, .json, .zip']),
+                                   'Supported: .csv, .tsv, .npy, .npz, .txt, .xls, .xlsx, .json, .zip (ZIP: preview only)']),
                 style={'width': '100%', 'height': '60px', 'lineHeight': '60px',
                        'borderWidth': '1px', 'borderStyle': 'dashed', 'borderRadius': '5px',
                        'textAlign': 'center', 'margin': '10px 0'}
@@ -41,8 +41,8 @@ app.layout = html.Div([
             html.Button('Run Image Attack', id='run-img-attack', n_clicks=0),
             html.Div(id='img-attack-result'),
             dcc.Graph(id='img-attack-plot'),
-        ]),
-        dcc.Tab(label='NLP Attack', children=[
+    ]),
+    dcc.Tab(label='NLP Attack', children=[
             html.Label('Dataset:'),
             dcc.Dropdown(
                 id='nlp-dataset',

@@ -11,6 +11,22 @@ def run_ids_demo(epsilon=1.0, dataset='toy', upload_contents=None):
         np.random.seed(42)
         X = np.random.rand(200, 4)
         y = ((X[:, 0] + X[:, 1] > 1) | (X[:, 2] > 0.8)).astype(int)  # 1=attack, 0=benign
+    elif dataset == 'nslkdd':
+        # Expect NSL-KDD as CSV, last column is label
+        try:
+            df = pd.read_csv('KDDTrain+.txt', header=None)
+            X = df.iloc[:, :-1].values
+            y = df.iloc[:, -1].values
+        except Exception as e:
+            raise RuntimeError(f'Could not load NSL-KDD: {e}')
+    elif dataset == 'unsw':
+        # Expect UNSW-NB15 as CSV, last column is label
+        try:
+            df = pd.read_csv('UNSW_NB15_training-set.csv')
+            X = df.iloc[:, :-1].values
+            y = df.iloc[:, -1].values
+        except Exception as e:
+            raise RuntimeError(f'Could not load UNSW-NB15: {e}')
     elif dataset == 'upload' and upload_contents:
         content_type, content_string = upload_contents.split(',')
         decoded = base64.b64decode(content_string)

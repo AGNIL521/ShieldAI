@@ -19,6 +19,11 @@ This project explores adversarial attacks within modern AI/ML systems, their imp
 4. **Run the web dashboard**: `python dashboard.py` and open [http://127.0.0.1:8050](http://127.0.0.1:8050)
 5. **Run tests**: `pytest tests/`
 
+### File Preview & Validation
+- After uploading a file, a preview of the first 5 rows or a summary will be shown before running attacks in the relevant dashboard tab.
+- If the file format is not supported or parsing fails, a clear error message will be displayed in the preview area.
+- ZIP file support is preview-only (lists files in archive; image batch attacks not yet supported). This applies to all upload boxes that mention ZIP.
+
 ## Dashboard Visualization
 - The dashboard provides a web interface to run and visualize attacks and defenses.
 - In the Image Attack tab, you can view the original, adversarial, and difference images using interactive buttons.
