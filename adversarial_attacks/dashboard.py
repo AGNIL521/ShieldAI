@@ -13,17 +13,25 @@ app.layout = html.Div([
     html.H1("Adversarial Attacks & Defenses Dashboard"),
     dcc.Tabs([
         dcc.Tab(label='Image Attack', children=[
+            html.Label('Attack Strength (epsilon):'),
+            dcc.Slider(id='img-epsilon', min=0, max=1, step=0.05, value=0.3, marks={0:'0', 0.5:'0.5', 1:'1'}),
             html.Button('Run Image Attack', id='run-img-attack', n_clicks=0),
             html.Div(id='img-attack-result'),
             dcc.Graph(id='img-attack-plot'),
         ]),
         dcc.Tab(label='NLP Attack', children=[
+            html.Label('Perturbation Probability:'),
+            dcc.Slider(id='nlp-perturb-prob', min=0, max=1, step=0.05, value=0.3, marks={0:'0', 0.5:'0.5', 1:'1'}),
             html.Button('Run NLP Attack', id='run-nlp-attack', n_clicks=0),
             html.Div(id='nlp-attack-result'),
+            dcc.Graph(id='nlp-attack-bar'),
         ]),
         dcc.Tab(label='IDS Attack', children=[
+            html.Label('Attack Strength (epsilon):'),
+            dcc.Slider(id='ids-epsilon', min=0, max=5, step=0.1, value=1.0, marks={0:'0', 2.5:'2.5', 5:'5'}),
             html.Button('Run IDS Attack', id='run-ids-attack', n_clicks=0),
             html.Div(id='ids-attack-result'),
+            dcc.Graph(id='ids-attack-bar'),
         ]),
         dcc.Tab(label='Adversarial Training', children=[
             html.Button('Run Adversarial Training', id='run-adv-train', n_clicks=0),
@@ -43,41 +51,64 @@ app.layout = html.Div([
 @app.callback(
     Output('img-attack-result', 'children'),
     Output('img-attack-plot', 'figure'),
-    Input('run-img-attack', 'n_clicks')
+    Input('run-img-attack', 'n_clicks'),
+    State('img-epsilon', 'value')
 )
-def run_img_attack(n):
+def run_img_attack(n, epsilon):
     if n == 0:
         return '', go.Figure()
-    # Run attack, get plot data
-    data = attack_demo
-    # Re-run the function to get plot data
-    data = np.loadtxt(os.path.join(os.path.dirname(__file__), 'simulation', 'attack_demo.py'), dtype=str, delimiter='\n')
-    fooled = attack_demo.run_attack_demo(plot=False)
-    # For the dashboard, show a static image (simulate)
-    # Ideally, refactor attack_demo to return images, but for now, just text
+    fooled, orig, adv, diff = attack_demo.run_attack_demo(plot=False, return_images=True, epsilon=epsilon)
     fig = go.Figure()
-    fig.update_layout(title='See script output for visualization')
+    fig.add_trace(go.Heatmap(z=orig, colorscale='gray', showscale=False, name='Original'))
+    fig.add_trace(go.Heatmap(z=adv, colorscale='gray', showscale=False, name='Adversarial', visible=False))
+    fig.add_trace(go.Heatmap(z=diff, colorscale='rdylbu', showscale=False, name='Difference', visible=False))
+    fig.update_layout(
+        title='Original, Adversarial, and Difference Images',
+        updatemenus=[{
+            'type': 'buttons',
+            'showactive': True,
+            'buttons': [
+                {'label': 'Original', 'method': 'update', 'args': [{'visible': [True, False, False]}, {'title': 'Original Image'}]},
+                {'label': 'Adversarial', 'method': 'update', 'args': [{'visible': [False, True, False]}, {'title': 'Adversarial Image'}]},
+                {'label': 'Difference', 'method': 'update', 'args': [{'visible': [False, False, True]}, {'title': 'Difference Image'}]},
+            ]
+        }]
+    )
     return f'Adversarial attack successful? {fooled}', fig
 
 @app.callback(
     Output('nlp-attack-result', 'children'),
-    Input('run-nlp-attack', 'n_clicks')
+    Output('nlp-attack-bar', 'figure'),
+    Input('run-nlp-attack', 'n_clicks'),
+    State('nlp-perturb-prob', 'value')
 )
-def run_nlp_attack(n):
+def run_nlp_attack(n, perturb_prob):
     if n == 0:
-        return ''
-    clean_acc, adv_acc, results = nlp_attack_demo.run_nlp_demo()
-    return f'Clean accuracy: {clean_acc:.2f}, Adversarial accuracy: {adv_acc:.2f}'
+        return '', go.Figure()
+    clean_acc, adv_acc, results = nlp_attack_demo.run_nlp_demo(perturb_prob=perturb_prob)
+    fig = go.Figure(data=[
+        go.Bar(name='Clean', x=['Accuracy'], y=[clean_acc]),
+        go.Bar(name='Adversarial', x=['Accuracy'], y=[adv_acc])
+    ])
+    fig.update_layout(barmode='group', title='NLP Attack: Clean vs Adversarial Accuracy')
+    return f'Clean accuracy: {clean_acc:.2f}, Adversarial accuracy: {adv_acc:.2f}', fig
 
 @app.callback(
     Output('ids-attack-result', 'children'),
-    Input('run-ids-attack', 'n_clicks')
+    Output('ids-attack-bar', 'figure'),
+    Input('run-ids-attack', 'n_clicks'),
+    State('ids-epsilon', 'value')
 )
-def run_ids_attack(n):
+def run_ids_attack(n, epsilon):
     if n == 0:
-        return ''
-    clean_acc, adv_acc = ids_attack_demo.run_ids_demo()
-    return f'Clean accuracy: {clean_acc:.2f}, Adversarial accuracy: {adv_acc:.2f}'
+        return '', go.Figure()
+    clean_acc, adv_acc = ids_attack_demo.run_ids_demo(epsilon=epsilon)
+    fig = go.Figure(data=[
+        go.Bar(name='Clean', x=['Accuracy'], y=[clean_acc]),
+        go.Bar(name='Adversarial', x=['Accuracy'], y=[adv_acc])
+    ])
+    fig.update_layout(barmode='group', title='IDS Attack: Clean vs Adversarial Accuracy')
+    return f'Clean accuracy: {clean_acc:.2f}, Adversarial accuracy: {adv_acc:.2f}', fig
 
 @app.callback(
     Output('adv-train-result', 'children'),

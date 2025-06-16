@@ -5,11 +5,14 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-def add_typos(text):
+def add_typos(text, perturb_prob):
     # Simple adversarial: replace 'a' with '@', 'e' with '3', etc.
-    return text.replace('a', '@').replace('e', '3').replace('o', '0')
+    if np.random.rand() < perturb_prob:
+        return text.replace('a', '@').replace('e', '3').replace('o', '0')
+    else:
+        return text
 
-def run_nlp_demo():
+def run_nlp_demo(perturb_prob=0.3):
     # Sample dataset
     texts = [
         'free money now', 'win big prize', 'cheap loans', 'urgent offer',
@@ -32,7 +35,7 @@ def run_nlp_demo():
     print(f"Accuracy on clean text: {clean_acc:.2f}")
 
     # Adversarially modify test samples
-    X_test_adv = [add_typos(t) for t in X_test]
+    X_test_adv = [add_typos(t, perturb_prob) for t in X_test]
     X_test_adv_vec = vectorizer.transform(X_test_adv)
     y_adv_pred = clf.predict(X_test_adv_vec)
     adv_acc = accuracy_score(y_test, y_adv_pred)

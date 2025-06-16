@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 
-def run_attack_demo(plot=False):
+def run_attack_demo(plot=False, return_images=False, epsilon=0.3):
     # Load dataset (simple image classification)
     data = load_digits()
     X, y = data.data, data.target
@@ -43,17 +43,24 @@ def run_attack_demo(plot=False):
     print(f'Original label: 1, Predicted (adversarial): {y_adv_pred}')
 
     if plot:
-        plt.subplot(1, 2, 1)
+        plt.figure(figsize=(10,3))
+        plt.subplot(1,3,1)
         plt.title('Original')
-        plt.imshow(x_orig.reshape(8, 8), cmap='gray')
+        plt.imshow(x_orig.reshape(8,8), cmap='gray')
         plt.axis('off')
-        plt.subplot(1, 2, 2)
+        plt.subplot(1,3,2)
         plt.title('Adversarial')
-        plt.imshow(x_adv.reshape(8, 8), cmap='gray')
+        plt.imshow(x_adv.reshape(8,8), cmap='gray')
+        plt.axis('off')
+        plt.subplot(1,3,3)
+        plt.title('Difference')
+        plt.imshow((x_adv-x_orig).reshape(8,8), cmap='bwr')
         plt.axis('off')
         plt.show()
 
-    return bool(y_adv_pred == 0)  # True if fooled, always as Python bool
+    if return_images:
+        return bool(y_adv_pred == 0), x_orig.reshape(8,8), x_adv.reshape(8,8), (x_adv-x_orig).reshape(8,8)
+    return bool(y_adv_pred == 0)
 
 if __name__ == "__main__":
     fooled = run_attack_demo(plot=True)

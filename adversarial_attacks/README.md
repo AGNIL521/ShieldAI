@@ -16,7 +16,13 @@ This project explores adversarial attacks within modern AI/ML systems, their imp
 1. **Install dependencies**: `pip install -r requirements.txt`
 2. **Run simulations**: `python simulation/attack_demo.py` (or other scripts in `simulation/`)
 3. **Explore interactively**: `jupyter lab simulation/interactive_exploration.ipynb`
-4. **Run tests**: `pytest tests/`
+4. **Run the web dashboard**: `python dashboard.py` and open [http://127.0.0.1:8050](http://127.0.0.1:8050)
+5. **Run tests**: `pytest tests/`
+
+## Dashboard Visualization
+- The dashboard provides a web interface to run and visualize attacks and defenses.
+- In the Image Attack tab, you can view the original, adversarial, and difference images using interactive buttons.
+- Other tabs let you run NLP, IDS, and defense demos and see results instantly.
 
 ## Continuous Integration (CI)
 - GitHub Actions workflow runs all tests on push and pull requests to `main`.

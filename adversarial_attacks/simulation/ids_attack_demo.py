@@ -3,7 +3,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-def run_ids_demo():
+def run_ids_demo(epsilon=1.0):
     # Generate synthetic network traffic data
     np.random.seed(42)
     X = np.random.rand(200, 4)
