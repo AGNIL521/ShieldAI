@@ -50,8 +50,10 @@ app.layout = dbc.Container([
                     dcc.Slider(id='img-epsilon', min=0, max=1, step=0.05, value=0.3, marks={0:'0', 0.5:'0.5', 1:'1'}, className="mb-3"),
                     dcc.Checklist(id='img-random', options=[{'label': ' Randomize Sample', 'value': 'random'}], value=['random'], className="mb-3"),
                     dbc.Button('Run Image Attack', id='run-img-attack', n_clicks=0, color="primary", className="mb-3"),
-                    dbc.Alert(id='img-attack-result', color="info", is_open=True),
-                    dcc.Graph(id='img-attack-plot'),
+                    dbc.Spinner(children=[
+                        dbc.Alert(id='img-attack-result', color="info", is_open=True),
+                        dcc.Graph(id='img-attack-plot'),
+                    ], size="lg", color="primary", type="border", fullscreen=False),
                 ])
             ], className="p-3")
     ]),
@@ -85,8 +87,10 @@ app.layout = dbc.Container([
                     dcc.Slider(id='nlp-perturb-prob', min=0, max=1, step=0.05, value=0.3, marks={0:'0', 0.5:'0.5', 1:'1'}, className="mb-3"),
                     dcc.Checklist(id='nlp-random', options=[{'label': ' Randomize Test Order', 'value': 'random'}], value=['random'], className="mb-3"),
                     dbc.Button('Run NLP Attack', id='run-nlp-attack', n_clicks=0, color="primary", className="mb-3"),
-                    dbc.Alert(id='nlp-attack-result', color="info"),
-                    dcc.Graph(id='nlp-attack-bar'),
+                    dbc.Spinner(children=[
+                        dbc.Alert(id='nlp-attack-result', color="info"),
+                        dcc.Graph(id='nlp-attack-bar'),
+                    ], size="lg", color="primary", type="border", fullscreen=False),
                 ])
             ], className="p-3")
         ]),
@@ -119,8 +123,10 @@ app.layout = dbc.Container([
                     html.Label('Attack Strength (epsilon):', className="fw-bold"),
                     dcc.Slider(id='ids-epsilon', min=0, max=5, step=0.1, value=1.0, marks={0:'0', 2.5:'2.5', 5:'5'}, className="mb-3"),
                     dbc.Button('Run IDS Attack', id='run-ids-attack', n_clicks=0, color="primary", className="mb-3"),
-                    dbc.Alert(id='ids-attack-result', color="info"),
-                    dcc.Graph(id='ids-attack-bar'),
+                    dbc.Spinner(children=[
+                        dbc.Alert(id='ids-attack-result', color="info"),
+                        dcc.Graph(id='ids-attack-bar'),
+                    ], size="lg", color="primary", type="border", fullscreen=False),
                 ])
             ], className="p-3")
         ]),
@@ -128,7 +134,9 @@ app.layout = dbc.Container([
             dbc.Card([
                 dbc.CardBody([
                     dbc.Button('Run Adversarial Training', id='run-adv-train', n_clicks=0, color="success", className="mb-3"),
-                    dbc.Alert(id='adv-train-result', color="success"),
+                    dbc.Spinner(children=[
+                        dbc.Alert(id='adv-train-result', color="success"),
+                    ], size="lg", color="success", type="border", fullscreen=False),
                 ])
             ], className="p-3")
         ]),
@@ -136,7 +144,9 @@ app.layout = dbc.Container([
             dbc.Card([
                 dbc.CardBody([
                     dbc.Button('Run Input Randomization', id='run-input-rand', n_clicks=0, color="warning", className="mb-3"),
-                    dbc.Alert(id='input-rand-result', color="warning"),
+                    dbc.Spinner(children=[
+                        dbc.Alert(id='input-rand-result', color="warning"),
+                    ], size="lg", color="warning", type="border", fullscreen=False),
                 ])
             ], className="p-3")
         ]),
@@ -144,7 +154,9 @@ app.layout = dbc.Container([
             dbc.Card([
                 dbc.CardBody([
                     dbc.Button('Run Monitoring', id='run-monitoring', n_clicks=0, color="danger", className="mb-3"),
-                    dbc.Alert(id='monitoring-result', color="danger"),
+                    dbc.Spinner(children=[
+                        dbc.Alert(id='monitoring-result', color="danger"),
+                    ], size="lg", color="danger", type="border", fullscreen=False),
                 ])
             ], className="p-3")
         ]),

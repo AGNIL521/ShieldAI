@@ -7,20 +7,23 @@ import matplotlib.pyplot as plt
 import random
 import base64
 import io
+import pandas as pd
 from tensorflow.keras.datasets import fashion_mnist, cifar10
 
-def run_attack_demo(plot=True, return_images=False, epsilon=0.3, idx=None, dataset='digits', upload_contents=None):
+def run_attack_demo(plot: bool = True, return_images: bool = False, epsilon: float = 0.3, idx: int | None = None, dataset: str = 'digits', upload_contents: str | None = None) -> tuple:
     """
     Run an adversarial attack on a random or specified test image.
+    
     Args:
         plot (bool): Show plots.
         return_images (bool): Return images for dashboard.
         epsilon (float): Attack strength.
         idx (int or None): Index of test sample to attack. If None, choose randomly.
         dataset (str): Which dataset to use ('digits', 'mnist', 'fashion-mnist', 'cifar10', 'upload').
-        upload_contents: base64-encoded uploaded file contents (if any).
+        upload_contents (str or None): base64-encoded uploaded file contents (if any).
+        
     Returns:
-        fooled (bool), orig_img, adv_img, diff_img (if return_images)
+        tuple: (fooled (bool), orig_img, adv_img, diff_img)
     """
 
     # Dataset selection logic
