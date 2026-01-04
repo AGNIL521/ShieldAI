@@ -5,3 +5,9 @@ matplotlib>=3.7
 jupyterlab
 notebook
 textattack
+dash
+dash-bootstrap-components
+plotly
+pandas
+pytest
+dash-bootstrap-components
