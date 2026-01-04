@@ -8,43 +8,71 @@ This project explores adversarial attacks within modern AI/ML systems, their imp
 ## Contents
 - `report.md`: Detailed synthesis of attack types, impacts, and defenses
 - `simulation/`: Python code demonstrating adversarial attacks and defenses
-- `requirements.txt`: Python dependencies
+- `requirements.txt`: Python dependencies (including `dash`, `dash-bootstrap-components`, `tensorflow`, `scikit-learn`)
 - `tests/`: Automated tests for attacks and defenses
 - `.github/workflows/`: CI configuration for GitHub Actions
 
 ## Getting Started
-1. **Install dependencies**: `pip install -r requirements.txt`
-2. **Run simulations**: `python simulation/attack_demo.py` (or other scripts in `simulation/`)
-3. **Explore interactively**: `jupyter lab simulation/interactive_exploration.ipynb`
-4. **Run the web dashboard**: `python dashboard.py` and open [http://127.0.0.1:8050](http://127.0.0.1:8050)
-5. **Run tests**: `pytest tests/`
+
+### 1. Installation
+It is recommended to use a virtual environment.
+```bash
+python -m venv venv
+# Windows:
+venv\Scripts\activate
+# Mac/Linux:
+source venv/bin/activate
+
+pip install -r requirements.txt
+```
+
+### 2. Running the Dashboard
+The dashboard provides a modern, responsive web interface using **Dash Bootstrap Components** to run and visualize attacks and defenses. It features **loading spinners** for long-running tasks and interactive visualizations.
+
+```bash
+python dashboard.py
+```
+Open [http://127.0.0.1:8050](http://127.0.0.1:8050) in your browser.
+
+### 3. Running Simulations
+Run individual simulation scripts directly:
+```bash
+python simulation/attack_demo.py
+```
+
+### 4. Running Tests
+Run the automated test suite to verify the project's integrity:
+```bash
+pytest tests/
+```
+
+## Features
+
+### Dashboard Visualization
+- **Image Attacks**: View original, adversarial, and difference images using interactive toggle buttons.
+- **NLP & IDS Attacks**: Run demos for text and network intrusion detection systems.
+- **Defenses**: Visualize the effectiveness of adversarial training and other defense mechanisms.
+- **Enhanced UI**: Built with Dash Bootstrap Components for a clean, professional look.
 
 ### File Preview & Validation
-- After uploading a file, a preview of the first 5 rows or a summary will be shown before running attacks in the relevant dashboard tab.
-- If the file format is not supported or parsing fails, a clear error message will be displayed in the preview area.
-- ZIP file support is preview-only (lists files in archive; image batch attacks not yet supported). This applies to all upload boxes that mention ZIP.
-
-## Dashboard Visualization
-- The dashboard provides a web interface to run and visualize attacks and defenses.
-- In the Image Attack tab, you can view the original, adversarial, and difference images using interactive buttons.
-- Other tabs let you run NLP, IDS, and defense demos and see results instantly.
+- Upload custom datasets (CSV, images) to test attacks.
+- Automatic preview of the first 5 rows or summary statistics.
+- Error handling for unsupported file formats.
 
 ## Continuous Integration (CI)
 - GitHub Actions workflow runs all tests on push and pull requests to `main`.
-- See `.github/workflows/python-app.yml` for configuration.
+- Validated against Python 3.10, 3.11, and 3.12.
+- See [.github/workflows/python-app.yml](.github/workflows/python-app.yml) for configuration.
 
 ## Troubleshooting
-- If you encounter pip or environment errors, try using a virtual environment:
-  ```bash
-  python -m venv venv
-  source venv/Scripts/activate  # or venv\Scripts\activate on Windows
-  pip install -r requirements.txt
-  ```
-- If tests fail due to type issues, ensure all return values are native Python types (`bool`, `float`, etc.).
-- For advanced NLP attacks, install `textattack` (optional, may require extra setup).
+- **Pip/Environment Errors**: Ensure you are in the virtual environment and have upgraded pip (`python -m pip install --upgrade pip`).
+- **Test Failures**: If `pytest` command is not found, try `python -m pytest tests/`.
+- **NLP Dependencies**: For advanced NLP attacks, ensure `textattack` is installed.
 
 ## Contributing
 Pull requests are welcome! Please add or update tests for any new features or fixes.
+- Ensure code is well-documented with docstrings and type hints.
+- Run tests before submitting.
 
 ---
 
